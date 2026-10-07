@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { CalendarDays, LayoutDashboard, ListTodo, Minus, Search, Settings as SettingsIcon, Square, Sun, X } from "lucide-react";
 import { buildToday } from "../core/selectors";
-import { createItem, getState, runDailyBackup, showToast, updateSettings, useCharles } from "../data/store";
+import { createItem, getKV, getState, runDailyBackup, setKV, showToast, updateSettings, useCharles } from "../data/store";
 import { toISODate } from "../core/dates";
 import { startScheduler } from "../data/scheduler";
 import { applyWidget, checkForUpdate, isTauri, onEvent, setAutostart, setGlobalShortcuts } from "../platform";
@@ -37,7 +37,11 @@ export function App() {
     startScheduler();
     const s = getState().settings;
     setGlobalShortcuts(s.shortcuts);
-    applyWidget(s.widget, false); // taille : celle mémorisée par la fenêtre
+    // 1.3 : le widget grandit une fois pour toutes (ensuite on garde la taille choisie à la souris)
+    getKV("widgetSize13").then((done) => {
+      applyWidget(s.widget, !done);
+      if (!done) setKV("widgetSize13", "1");
+    });
     if (!s.onboarded) {
       setAutostart(s.autostart);
       updateSettings({ onboarded: true }, false);

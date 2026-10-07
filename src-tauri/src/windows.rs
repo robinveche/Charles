@@ -80,9 +80,9 @@ pub fn apply_widget(app: AppHandle, visible: bool, layer: String, size: String, 
     let w = app.get_webview_window("widget").ok_or("widget introuvable")?;
     if resize {
         let (width, height) = match size.as_str() {
-            "mini" => (270.0, 150.0),
-            "large" => (330.0, 580.0),
-            _ => (310.0, 420.0),
+            "mini" => (330.0, 300.0),
+            "large" => (440.0, 780.0),
+            _ => (390.0, 620.0),
         };
         w.set_size(LogicalSize::new(width, height)).map_err(|e| e.to_string())?;
     }

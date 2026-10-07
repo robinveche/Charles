@@ -332,6 +332,8 @@ export async function addNote(id: string, notes: string) {
 }
 
 // ─── Journal (note du jour) ──────────────────────────────────
+export const getKV = (k: string) => repo.getKV(k);
+export const setKV = (k: string, v: string) => repo.setKV(k, v);
 export const getJournal = (date: string) => repo.getKV(`journal:${date}`);
 export const setJournal = (date: string, text: string) => repo.setKV(`journal:${date}`, text);
 
