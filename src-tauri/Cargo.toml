@@ -1,6 +1,6 @@
 [package]
 name = "charles"
-version = "1.4.0"
+version = "1.4.1"
 description = "Charles — assistant personnel de bureau"
 authors = ["Robin Veche"]
 edition = "2021"
