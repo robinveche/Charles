@@ -62,6 +62,13 @@ Préparer pitch #spotwise              → catégorie personnalisée
 ce soir · demain matin · cet après-midi · le 12 · 12/11 · 1er novembre · semaine prochaine
 ```
 
+### Nouveautés 1.4
+- **Charles sur l'iPhone** (appli web installable) + **synchronisation PC ↔ iPhone** via Supabase : voir [`docs/IPHONE.md`](docs/IPHONE.md).
+- Mise en page téléphone (barre d'onglets en bas, vue jour par défaut).
+
+### Nouveautés 1.3
+- Widget plus grand et complet (en ce moment, prochain, programme, à faire, demain).
+
 ### Nouveautés 1.2
 - **Durée dès la création** (bouton Durée : 15 min → 8 h, par demi-heure) ou en tapant « pendant 2h », « (1h30) ».
 - **Projets** Spotwise / MP Finance / ICN (modifiables) : reconnus dans le titre ou via #spotwise ; **temps par projet** dans le Bilan.

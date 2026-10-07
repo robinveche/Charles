@@ -26,6 +26,12 @@ window.addEventListener("contextmenu", (e) => {
   if (!(e.target as HTMLElement).closest("input,textarea")) e.preventDefault();
 });
 
+// Version iPhone / navigateur : fonctionnement hors connexion
+if (!("__TAURI_INTERNALS__" in window) && "serviceWorker" in navigator && import.meta.env.PROD) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
+document.documentElement.classList.toggle("is-web", !("__TAURI_INTERNALS__" in window));
+
 /** Le thème peut être changé depuis une autre fenêtre : on suit l'état partagé. */
 function ThemeSync() {
   const { settings } = useCharles();

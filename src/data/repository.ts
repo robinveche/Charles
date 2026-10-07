@@ -17,6 +17,13 @@ export interface Repository {
   saveSettings(s: Settings): Promise<void>;
   loadProjects(): Promise<Project[]>;
   saveProject(p: Project & { deletedAt?: string | null }): Promise<void>;
+  /** Synchronisation : éléments modifiés depuis `since` (suppressions comprises). */
+  loadItemsSince(since: string | null): Promise<Item[]>;
+  loadItemById(id: string): Promise<Item | null>;
+  /** Toutes les catégories / projets, supprimés compris. */
+  loadAllCategories(): Promise<Category[]>;
+  loadAllProjects(): Promise<Project[]>;
+  listKV(prefix: string): Promise<{ key: string; value: string }[]>;
   /** Petites valeurs libres (ex. note du jour « journal:2026-10-07 »). */
   getKV(key: string): Promise<string | null>;
   setKV(key: string, value: string): Promise<void>;

@@ -53,6 +53,8 @@ export interface Category {
   kind: ItemKind; // type par défaut des éléments de cette catégorie
   sort: number;
   builtin: boolean;
+  updatedAt?: string;
+  deletedAt?: string | null;
 }
 
 export interface Project {
@@ -60,6 +62,8 @@ export interface Project {
   name: string;
   color: string;
   sort: number;
+  updatedAt?: string;
+  deletedAt?: string | null;
 }
 
 export const DEFAULT_PROJECTS: Project[] = [

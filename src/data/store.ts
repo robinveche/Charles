@@ -67,6 +67,14 @@ function mergeSettings(s: Partial<Settings> | null): Settings {
   return { ...d, ...s, shortcuts: { ...d.shortcuts, ...(s.shortcuts ?? {}) }, widget: { ...d.widget, ...(s.widget ?? {}) } };
 }
 
+/** Branché par le module de synchronisation : appelé après chaque écriture locale. */
+let afterWrite: (() => void) | null = null;
+export const setAfterWrite = (f: (() => void) | null) => { afterWrite = f; };
+export const getRepo = () => repo;
+export const reloadStore = () => reload();
+/** Prévient les autres fenêtres (widget, ajout rapide) qu'il faut se recharger. */
+export const notifyOthers = () => emitChanged(ORIGIN);
+
 async function reload() {
   const [items, categories, settings, projects] = await Promise.all([repo.loadItems(), repo.loadCategories(), repo.loadSettings(), repo.loadProjects()]);
   set({ items, categories, projects, settings: mergeSettings(settings), ready: true });
@@ -85,20 +93,23 @@ export function initStore(): Promise<void> {
     const cats = await repo.loadCategories();
     const have = new Set(cats.map((c) => c.id));
     let sort = cats.length;
-    for (const c of DEFAULT_CATEGORIES) if (!have.has(c.id)) await repo.saveCategory({ ...c, sort: sort++ });
+    // date très ancienne : une catégorie modifiée sur un autre appareil gagnera toujours à la synchro
+    const SEED = "2000-01-01T00:00:00.000Z";
+    for (const c of DEFAULT_CATEGORIES) if (!have.has(c.id)) await repo.saveCategory({ ...c, sort: sort++, updatedAt: SEED });
     // projets par défaut, une seule fois (on peut ensuite les renommer / supprimer)
     if (!(await repo.getKV("projectsSeeded"))) {
-      if ((await repo.loadProjects()).length === 0) for (const p of DEFAULT_PROJECTS) await repo.saveProject(p);
+      if ((await repo.loadProjects()).length === 0) for (const p of DEFAULT_PROJECTS) await repo.saveProject({ ...p, updatedAt: SEED });
       await repo.setKV("projectsSeeded", "1");
     }
     await reload();
-    onChanged((origin) => { if (origin !== ORIGIN) reload(); });
+    onChanged((origin) => { if (origin !== ORIGIN) reload().then(() => afterWrite?.()); });
   })();
   return initPromise;
 }
 
 async function persist(item: Item, broadcast = true) {
   await repo.saveItem(item);
+  afterWrite?.();
   if (broadcast) emitChanged(ORIGIN);
 }
 function replaceItem(item: Item) {
@@ -334,8 +345,17 @@ export async function addNote(id: string, notes: string) {
 // ─── Journal (note du jour) ──────────────────────────────────
 export const getKV = (k: string) => repo.getKV(k);
 export const setKV = (k: string, v: string) => repo.setKV(k, v);
-export const getJournal = (date: string) => repo.getKV(`journal:${date}`);
-export const setJournal = (date: string, text: string) => repo.setKV(`journal:${date}`, text);
+/** Note du jour stockée avec sa date de modification (pour la synchronisation). */
+export function decodeJournal(v: string | null): { t: string; u: string } {
+  if (!v) return { t: "", u: "" };
+  try { const o = JSON.parse(v); if (o && typeof o.t === "string") return o; } catch { /* ancien format : texte brut */ }
+  return { t: v, u: "" };
+}
+export const getJournal = async (date: string) => decodeJournal(await repo.getKV(`journal:${date}`)).t;
+export const setJournal = async (date: string, text: string) => {
+  await repo.setKV(`journal:${date}`, JSON.stringify({ t: text, u: nowISO() }));
+  afterWrite?.();
+};
 
 // ─── Relances ────────────────────────────────────────────────
 const FOLLOW_RX = /^(appeler|appel|rdv|rendez[- ]vous|r[ée]union|relancer|relance|call|t[ée]l[ée]phoner|d[ée]jeuner|visio|entretien|rencontre|devis)(\s+(avec|à|a|de|chez))?\s+/i;
@@ -387,7 +407,8 @@ export async function saveProject(p: Partial<Project> & { name: string }) {
   const ex = p.id ? state.projects.find((x) => x.id === p.id) : undefined;
   const proj: Project = ex ? { ...ex, ...p } : { id: uuid(), color: "#8a8f98", sort: state.projects.length, ...p };
   set({ projects: ex ? state.projects.map((x) => (x.id === proj.id ? proj : x)) : [...state.projects, proj] });
-  await repo.saveProject(proj);
+  await repo.saveProject({ ...proj, updatedAt: nowISO() });
+  afterWrite?.();
   emitChanged(ORIGIN);
 }
 
@@ -396,7 +417,8 @@ export async function deleteProject(id: string) {
   if (!p) return;
   for (const i of state.items.filter((i) => i.projectId === id)) await updateItem(i.id, { projectId: null });
   set({ projects: state.projects.filter((x) => x.id !== id) });
-  await repo.saveProject({ ...p, deletedAt: nowISO() });
+  await repo.saveProject({ ...p, deletedAt: nowISO(), updatedAt: nowISO() });
+  afterWrite?.();
   emitChanged(ORIGIN);
 }
 
@@ -416,7 +438,8 @@ export async function saveCategory(c: Partial<Category> & { name: string }) {
     ? { ...existing, ...c }
     : { id: uuid(), icon: "circle", color: "#8a8f98", kind: "task", builtin: false, sort: state.categories.length, ...c };
   set({ categories: existing ? state.categories.map((x) => (x.id === cat.id ? cat : x)) : [...state.categories, cat] });
-  await repo.saveCategory(cat);
+  await repo.saveCategory({ ...cat, updatedAt: nowISO() });
+  afterWrite?.();
   emitChanged(ORIGIN);
 }
 
@@ -426,7 +449,8 @@ export async function deleteCategory(id: string) {
   // les éléments de la catégorie repassent en « Tâche »
   for (const i of state.items.filter((i) => i.categoryId === id)) await updateItem(i.id, { categoryId: "task" });
   set({ categories: state.categories.filter((x) => x.id !== id) });
-  await repo.saveCategory({ ...c, deletedAt: nowISO() } as Category);
+  await repo.saveCategory({ ...c, deletedAt: nowISO(), updatedAt: nowISO() } as Category);
+  afterWrite?.();
   emitChanged(ORIGIN);
 }
 

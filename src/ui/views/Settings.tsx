@@ -7,6 +7,7 @@ import { appVersion, applyWidget, checkForUpdate, isTauri, openBackupsFolder, se
 import { CATEGORY_ICONS, CatIcon } from "../components/Icon";
 import { displayAccel, eventToAccel } from "../shortcuts";
 import { setUI } from "../uiState";
+import { SyncSettings } from "../components/Account";
 
 const COLORS = ["#8a8f98", "#c9a36a", "#d08770", "#7fb59a", "#7f9cc7", "#b48fc7", "#c7a07f", "#9aa5a0"];
 
@@ -22,6 +23,8 @@ export function SettingsView() {
     <div className="page">
       <h1 className="page-title">Paramètres</h1>
 
+      <SyncSettings />
+
       <div className="set-group">
         <span className="eyebrow">Apparence</span>
         <div className="set-row">
@@ -34,7 +37,7 @@ export function SettingsView() {
         </div>
       </div>
 
-      <div className="set-group">
+      {isTauri && <div className="set-group">
         <span className="eyebrow">Widget de bureau</span>
         <Row label="Afficher le widget" hint="Glissez l'en-tête pour le déplacer, tirez un bord pour le redimensionner.">
           <Toggle on={settings.widget.visible} onChange={(v) => setWidget({ visible: v })} />
@@ -65,7 +68,7 @@ export function SettingsView() {
         <Row label="Épingler" hint="Verrouille la position du widget.">
           <Toggle on={settings.widget.locked} onChange={(v) => setWidget({ locked: v })} />
         </Row>
-      </div>
+      </div>}
 
       <div className="set-group">
         <span className="eyebrow">Rappels</span>
@@ -110,11 +113,11 @@ export function SettingsView() {
         </Row>
       </div>
 
-      <ShortcutsGroup />
+      {isTauri && <ShortcutsGroup />}
       <ProjectsGroup />
       <CategoriesGroup />
 
-      <div className="set-group">
+      {isTauri && <div className="set-group">
         <span className="eyebrow">Système</span>
         <Row label="Lancer Charles au démarrage de Windows" hint="Charles démarre discrètement dans la barre système.">
           <Toggle on={settings.autostart} onChange={(v) => { updateSettings({ autostart: v }); setAutostart(v); }} />
@@ -123,7 +126,8 @@ export function SettingsView() {
           <button className="btn" disabled={!isTauri} onClick={openBackupsFolder}><FolderOpen size={14} /> Ouvrir le dossier</button>
         </Row>
       </div>
-      <UpdateRow />
+      }
+      {isTauri && <UpdateRow />}
       <div className="hint" style={{ textAlign: "center", marginTop: 10 }}>Données locales, aucun compte requis</div>
     </div>
   );

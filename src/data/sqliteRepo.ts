@@ -85,7 +85,7 @@ export class SqliteRepository implements Repository {
     await this.db.execute(
       `INSERT INTO categories (id,name,icon,color,kind,sort,builtin,updated_at,deleted_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        ON CONFLICT(id) DO UPDATE SET name=$2,icon=$3,color=$4,kind=$5,sort=$6,builtin=$7,updated_at=$8,deleted_at=$9`,
-      [c.id, c.name, c.icon, c.color, c.kind, c.sort, c.builtin ? 1 : 0, new Date().toISOString(), c.deletedAt ?? null],
+      [c.id, c.name, c.icon, c.color, c.kind, c.sort, c.builtin ? 1 : 0, c.updatedAt ?? new Date().toISOString(), c.deletedAt ?? null],
     );
   }
 
@@ -94,6 +94,36 @@ export class SqliteRepository implements Repository {
       "INSERT INTO settings (key, value) VALUES ('settings', $1) ON CONFLICT(key) DO UPDATE SET value=$1",
       [JSON.stringify(s)],
     );
+  }
+
+  async loadItemsSince(since: string | null) {
+    const rows = since
+      ? await this.db.select<Row[]>("SELECT * FROM items WHERE updated_at > $1", [since])
+      : await this.db.select<Row[]>("SELECT * FROM items");
+    return rows.map(rowToItem);
+  }
+
+  async loadItemById(id: string) {
+    const rows = await this.db.select<Row[]>("SELECT * FROM items WHERE id = $1", [id]);
+    return rows.length ? rowToItem(rows[0]) : null;
+  }
+
+  async loadAllCategories() {
+    const rows = await this.db.select<Row[]>("SELECT * FROM categories ORDER BY sort");
+    return rows.map((r) => ({
+      id: r.id, name: r.name, icon: r.icon, color: r.color, kind: r.kind, sort: r.sort, builtin: !!r.builtin,
+      updatedAt: r.updated_at, deletedAt: r.deleted_at ?? null,
+    })) as Category[];
+  }
+
+  async loadAllProjects() {
+    const rows = await this.db.select<Row[]>("SELECT * FROM projects ORDER BY sort");
+    return rows.map((r) => ({ id: r.id, name: r.name, color: r.color, sort: r.sort, updatedAt: r.updated_at, deletedAt: r.deleted_at ?? null })) as Project[];
+  }
+
+  async listKV(prefix: string) {
+    const rows = await this.db.select<Row[]>("SELECT key, value FROM settings WHERE key LIKE $1", [`kv:${prefix}%`]);
+    return rows.map((r) => ({ key: String(r.key).slice(3), value: r.value as string }));
   }
 
   async loadProjects() {
@@ -105,7 +135,7 @@ export class SqliteRepository implements Repository {
     await this.db.execute(
       `INSERT INTO projects (id,name,color,sort,updated_at,deleted_at) VALUES ($1,$2,$3,$4,$5,$6)
        ON CONFLICT(id) DO UPDATE SET name=$2,color=$3,sort=$4,updated_at=$5,deleted_at=$6`,
-      [p.id, p.name, p.color, p.sort, new Date().toISOString(), p.deletedAt ?? null],
+      [p.id, p.name, p.color, p.sort, p.updatedAt ?? new Date().toISOString(), p.deletedAt ?? null],
     );
   }
 

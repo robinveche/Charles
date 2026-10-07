@@ -52,7 +52,7 @@ export function Today({ quickRef }: { quickRef: React.RefObject<HTMLInputElement
 
       <NextCard next={m.next} today={today} />
 
-      <QuickAdd inputRef={quickRef} placeholder="Ajouter quelque chose…   ex. « Relancer Lucas vendredi 14h »" />
+      <QuickAdd inputRef={quickRef} placeholder={typeof window !== "undefined" && window.innerWidth < 760 ? "Ajouter quelque chose…" : "Ajouter quelque chose…   ex. « Relancer Lucas vendredi 14h »"} />
 
       {m.overdue.length > 0 && (
         <section className="section">
@@ -121,7 +121,8 @@ function NextCard({ next, today }: { next: ReturnType<typeof buildToday>["next"]
     <div className="next" onClick={() => openEditor(next)}>
       <div className="next-time">{next.time}</div>
       <div style={{ minWidth: 0 }}>
-        <div className="next-label">{next.date === today ? "Prochain" : `Prochain · ${relativeDay(next.date!, today)}`}</div>
+        <div className="next-label">{next.date !== today ? `Prochain · ${relativeDay(next.date!, today)}`
+          : next.time && minutesOf(next.time) <= new Date().getHours() * 60 + new Date().getMinutes() ? "En cours" : "Prochain"}</div>
         <div className="next-title">{next.title}</div>
         <div className="next-meta">
           <CatIcon name={cat.icon} size={12} /> {cat.name}

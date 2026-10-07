@@ -15,6 +15,7 @@ const HH = 52; // hauteur d'une heure (px)
 const SNAP = 15;
 
 const readMode = (): Mode => {
+  if (typeof window !== "undefined" && window.innerWidth < 760) return "day"; // téléphone : vue jour
   try { return (localStorage.getItem("charles.calmode") as Mode) || "week"; } catch { return "week"; }
 };
 

@@ -4,6 +4,8 @@ import { buildToday } from "../core/selectors";
 import { createItem, getKV, getState, runDailyBackup, setKV, showToast, updateSettings, useCharles } from "../data/store";
 import { toISODate } from "../core/dates";
 import { startScheduler } from "../data/scheduler";
+import { cloudConfigured, startSync, useSync } from "../data/cloud";
+import { LoginScreen } from "./components/Account";
 import { applyWidget, checkForUpdate, isTauri, onEvent, setAutostart, setGlobalShortcuts } from "../platform";
 import { BrandMark } from "./components/Icon";
 import { ItemEditor } from "./components/ItemEditor";
@@ -26,6 +28,18 @@ const NAV: { id: Page; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function App() {
+  const sync = useSync();
+  // Version iPhone / navigateur : il faut être connecté pour retrouver ses données
+  if (!isTauri && cloudConfigured && sync.ready && !sync.email) return <><LoginScreen /><SyncStarter /></>;
+  return <MainApp />;
+}
+
+function SyncStarter() {
+  useEffect(() => { startSync(); }, []);
+  return null;
+}
+
+function MainApp() {
   const { items, settings, lingering } = useCharles();
   const { page } = useUI();
   const now = useNow(60_000);
@@ -35,6 +49,7 @@ export function App() {
   // Démarrage de la fenêtre principale : planificateur, raccourcis globaux, widget, autostart, sauvegarde.
   useEffect(() => {
     startScheduler();
+    startSync();
     const s = getState().settings;
     setGlobalShortcuts(s.shortcuts);
     // 1.3 : le widget grandit une fois pour toutes (ensuite on garde la taille choisie à la souris)
@@ -45,7 +60,7 @@ export function App() {
     if (!s.onboarded) {
       setAutostart(s.autostart);
       updateSettings({ onboarded: true }, false);
-      if (getState().items.length === 0) {
+      if (isTauri && getState().items.length === 0) {
         createItem({
           title: "Découvrir Charles", kind: "task", categoryId: "task", priority: 0, date: toISODate(new Date()), time: null,
           durationMin: 60, reminders: [], recurrence: null,

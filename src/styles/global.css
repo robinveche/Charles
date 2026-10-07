@@ -587,3 +587,62 @@ input, textarea { user-select: text; }
 .size-mini .wnow { margin-bottom: 4px; }
 
 .wbody2 > * { flex-shrink: 0; }
+
+/* ─── Compte / connexion ────────────────────────────────── */
+.account-form { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.account-form .input { height: 40px; font-size: 15px; }
+.login-screen { min-height: 100%; display: grid; place-items: center; padding: 24px 20px calc(24px + env(safe-area-inset-bottom)); background: var(--bg); overflow-y: auto; }
+.login-card { width: 100%; max-width: 380px; display: flex; flex-direction: column; align-items: center; }
+
+/* ─── Version iPhone (écran étroit) ─────────────────────── */
+@media (hover: none) {
+  .row .actions { opacity: 1; }
+  .wtools { opacity: 1; }
+}
+@media (max-width: 760px) {
+  html, body, #root { height: 100%; }
+  body { font-size: 15px; -webkit-tap-highlight-color: transparent; }
+  .app { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: 100dvh; }
+  .main { grid-row: 1; padding-top: env(safe-area-inset-top); -webkit-overflow-scrolling: touch; }
+  .sidebar { grid-row: 2; flex-direction: row; align-items: center; padding: 4px 6px calc(4px + env(safe-area-inset-bottom)); border-right: 0; border-top: 1px solid var(--line); background: color-mix(in srgb, var(--bg-2) 92%, transparent); backdrop-filter: blur(16px); }
+  .brand, .sidebar-search, .sidebar .spacer, .sidebar-foot .hint, .nav-item .count { display: none; }
+  .nav { flex-direction: row; flex: 1; justify-content: space-around; gap: 0; }
+  .nav-item { flex-direction: column; gap: 3px; font-size: 10.5px; padding: 7px 2px 5px; min-width: 62px; align-items: center; border-radius: 10px; }
+  .nav-item.active { background: transparent; color: var(--accent); }
+  .sidebar-foot { padding: 0 4px; }
+  .sidebar-foot .icon-btn { width: 44px; height: 44px; }
+  .page { padding: 18px 16px 40px; }
+  .page.wide { padding: 14px 8px 8px; }
+  .date-title { font-size: 26px; }
+  .next { padding: 14px 16px; gap: 2px 14px; }
+  .next-time { font-size: 30px; }
+  .quick-input { height: 48px; font-size: 16px; } /* 16px : évite le zoom auto de Safari */
+  .input, .select, .textarea, .notes-input, .title-input { font-size: 16px; }
+  .row { min-height: 50px; }
+  .overdue-actions { margin-left: 0; }
+  .bilan-head { flex-wrap: wrap; }
+  .bilan-grid { grid-template-columns: 1fr; gap: 24px; }
+  .stats { flex-wrap: wrap; }
+  .stat { min-width: 45%; }
+  .stat + .stat { padding-left: 12px; }
+  .projrow { grid-template-columns: 96px 1fr 52px 52px; gap: 8px; }
+  .overlay { padding: calc(8px + env(safe-area-inset-top)) 8px 8px; }
+  .modal, .palette { width: 100%; max-height: calc(100dvh - 24px); }
+  .grid3 { grid-template-columns: 1fr 1fr; }
+  .set-row { flex-wrap: wrap; }
+  .set-row .l { min-width: 100%; }
+  .cal-toolbar { flex-wrap: wrap; gap: 6px; }
+  .cal-title { width: 100%; font-size: 19px; }
+  .cal-toolbar .btn.ghost { display: none; }
+  .toast { bottom: calc(76px + env(safe-area-inset-bottom)); width: calc(100vw - 24px); }
+  .toast .tt { max-width: 46vw; }
+  .rv-row { flex-wrap: wrap; }
+  .rv-acts { justify-content: flex-start; }
+  .typecats .tcat span { font-size: 12px; }
+}
+@media (max-width: 760px) {
+  .now-block { flex-wrap: wrap; row-gap: 2px; }
+  .next-meta { flex-wrap: wrap; row-gap: 0; }
+  .row .sub { flex-wrap: wrap; row-gap: 0; }
+  .row .sub > span { white-space: nowrap; }
+}
