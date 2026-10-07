@@ -1,0 +1,10 @@
+node_modules
+dist
+src-tauri/target
+src-tauri/gen
+*.log
+
+# clé de signature des mises à jour : JAMAIS dans le dépôt
+*.key
+*.key.pub
+CharlesSetup.exe

@@ -1,0 +1,110 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Charles",
+  "version": "1.2.0",
+  "identifier": "app.charles.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Charles",
+        "width": 1180,
+        "height": 780,
+        "minWidth": 860,
+        "minHeight": 560,
+        "center": true,
+        "decorations": false,
+        "visible": false,
+        "backgroundColor": "#0b0b0c",
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
+      },
+      {
+        "label": "quick",
+        "title": "Charles — ajout rapide",
+        "width": 680,
+        "height": 400,
+        "center": true,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "visible": false,
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
+      },
+      {
+        "label": "widget",
+        "title": "Charles — widget",
+        "width": 310,
+        "height": 420,
+        "minWidth": 230,
+        "minHeight": 130,
+        "x": 40,
+        "y": 80,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "skipTaskbar": true,
+        "resizable": true,
+        "visible": false,
+        "dragDropEnabled": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "publisher": "Robin Veche",
+    "shortDescription": "Charles — votre journée en un coup d'œil",
+    "longDescription": "Agenda, tâches et rappels ultra-rapides pour Windows.",
+    "category": "Productivity",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "French"
+        ],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico"
+      },
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      }
+    },
+    "createUpdaterArtifacts": false
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE1QzExNTM2RDNGMzhDQjYKUldTMmpQUFROaFhCcFM0UG9Jc2hKTVo1K3pvS0lCdEdmKzBIcWFwNkdINXZCem1PMHc0eVFIN1cK",
+      "endpoints": [
+        "https://github.com/__GITHUB_REPO__/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

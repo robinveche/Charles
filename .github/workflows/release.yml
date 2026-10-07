@@ -1,0 +1,79 @@
+# Publie automatiquement une nouvelle version de Charles.
+# Déclenché à chaque envoi (push) sur la branche main.
+# Si la version (src-tauri/tauri.conf.json) existe déjà en release, rien n'est reconstruit.
+# Charles installé sur le PC détecte la nouvelle version et propose « Mettre à jour ».
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version
+        id: v
+        shell: bash
+        run: |
+          V=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "version=$V" >> $GITHUB_OUTPUT
+          if gh release view "v$V" > /dev/null 2>&1; then echo "exists=true" >> $GITHUB_OUTPUT; else echo "exists=false" >> $GITHUB_OUTPUT; fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Déjà publiée
+        if: steps.v.outputs.exists == 'true'
+        run: echo "La version ${{ steps.v.outputs.version }} est déjà publiée. Changez le numéro de version pour publier."
+
+      - uses: actions/setup-node@v4
+        if: steps.v.outputs.exists == 'false'
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.v.outputs.exists == 'false'
+
+      - uses: Swatinem/rust-cache@v2
+        if: steps.v.outputs.exists == 'false'
+        with:
+          workspaces: src-tauri
+
+      - name: Dépendances et tests
+        if: steps.v.outputs.exists == 'false'
+        run: |
+          npm ci
+          npm test
+
+      - name: Activer les mises à jour (adresse du dépôt + fichiers signés)
+        if: steps.v.outputs.exists == 'false'
+        shell: bash
+        run: |
+          node -e "
+            const fs = require('fs'); const p = 'src-tauri/tauri.conf.json';
+            const c = JSON.parse(fs.readFileSync(p, 'utf8'));
+            c.bundle.createUpdaterArtifacts = true;
+            c.plugins.updater.endpoints = ['https://github.com/${{ github.repository }}/releases/latest/download/latest.json'];
+            fs.writeFileSync(p, JSON.stringify(c, null, 2));
+          "
+
+      - name: Construire et publier
+        if: steps.v.outputs.exists == 'false'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        with:
+          tagName: v__VERSION__
+          releaseName: Charles v__VERSION__
+          releaseBody: Nouvelle version de Charles. Installez CharlesSetup ci-dessous, ou laissez Charles se mettre à jour tout seul.
+          releaseDraft: false
+          prerelease: false
+          includeUpdaterJson: true
